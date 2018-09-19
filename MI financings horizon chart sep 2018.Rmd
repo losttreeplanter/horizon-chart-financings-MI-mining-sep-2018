@@ -1,0 +1,154 @@
+---
+title: "Mining financings horizon chart"
+output: html_notebook
+---
+
+MI financings ran sep 2018 
+
+```{r}
+
+
+library(tidyverse)
+raw_financings <- read_csv("capital raisings MI all formated R sep 2018.csv")
+View(raw_financings)
+glimpse(raw_financings)
+
+
+
+
+
+```
+
+
+
+Let's create date column and create year column. 
+
+```{r}
+
+library(lubridate)
+
+financings_formatted <- raw_financings %>% mutate(close_date_format=mdy(ClosedDate)) %>% mutate(start_date_format=mdy(StartDate)) %>% separate(ClosedDate, c("month_close_date", "day_close_date", "year_close_date")," ", convert=TRUE)
+
+glimpse(financings_formatted)
+
+```
+
+
+Let's factor month_close_date 
+
+```{r}
+
+financings_formatted$month_close_date <- factor(financings_formatted$month_close_date, levels=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"))
+
+```
+
+
+
+
+
+Let's try chart monthly closed 2017 chart
+
+
+```{r}
+
+library(scales)
+
+financings_formatted %>% filter(!year_close_date %in% c(2009,2019)) %>% filter(!is.na(year_close_date)) %>% 
+
+ggplot(aes(month_close_date,FinalAmountUSD))+
+  geom_col()+
+  scale_y_continuous(labels = dollar)+
+  facet_grid(rows=vars(year_close_date))
+
+```
+
+
+Let's add moving averages to financings_formatted. 
+
+First, need to create month totals. 
+
+
+```{r}
+
+month_totals_final <- financings_formatted %>%filter(!is.na(FinalAmountUSD)) %>% mutate(month_year_FinalAmountUSD=paste(month_close_date,year_close_date, sep="-")) %>% group_by(month_year_FinalAmountUSD) %>% mutate(monthly_total_FinalAmountUSD = sum(FinalAmountUSD)) %>% ungroup()
+
+glimpse(month_totals_final)
+
+?paste()
+```
+
+
+
+
+Using this https://www.business-science.io/timeseries-analysis/2017/07/23/tidy-timeseries-analysis-pt-2.html
+
+
+
+```{r}
+
+library(tidyquant)
+
+time_series_financings <- month_totals_final %>% tq_mutate(
+  # tq_mutate args
+        select     = monthly_total_FinalAmountUSD,
+        mutate_fun = rollapply, 
+        # rollapply args
+        width      = 3,
+        align      = "right",
+        FUN        = mean,
+        # mean args
+        na.rm      = TRUE,
+        # tq_mutate args
+        col_rename = "mean_3_FinalAmountUSD"
+    ) %>%
+    tq_mutate(
+        # tq_mutate args
+        select     = monthly_total_FinalAmountUSD,
+        mutate_fun = rollapply,
+        # rollapply args
+        width      = 12,
+        align      = "right",
+        FUN        = mean,
+        # mean args
+        na.rm      = TRUE,
+        # tq_mutate args
+        col_rename = "mean_12_FinalAmountUSD"
+    )
+
+glimpse(time_series_financings)
+
+#View(time_series_financings)
+
+```
+
+
+
+Let's chart. 
+
+
+```{r}
+
+library(scales)
+
+
+time_series_financings %>% filter(year_close_date==2017) %>% 
+
+
+ggplot(aes(month_year_FinalAmountUSD,monthly_total_FinalAmountUSD , group=1))+
+  geom_line() +
+   # geom_line(aes(y = mean_28_FinalAmountUSD), color = palette_light()[[1]], size = 1) +
+    geom_line(aes(y = mean_12_FinalAmountUSD), color = palette_light()[[2]], size = 1) +
+  scale_y_continuous(labels = dollar)
+
+
+```
+
+
+
+
+
+
+
+
+
+

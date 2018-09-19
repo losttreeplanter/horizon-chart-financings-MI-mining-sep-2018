@@ -1,0 +1,37 @@
+---
+title: "Play with ggplot_horizon"
+output: html_notebook
+---
+
+Trying out package. 
+
+
+
+```{r}
+
+library(ggTimeSeries)
+# creating some data
+set.seed(1)
+dfData = data.frame(x = 1:1000, y = cumsum(rnorm(1000)))
+
+# base plot
+p1 = ggplot_horizon(dfData, 'x', 'y')
+
+
+print("If you're seeing any vertical white stripes, it's a display thing.")
+#> [1] "If you're seeing any vertical white stripes, it's a display thing."
+# adding some formatting
+p1 + 
+   xlab(NULL) + 
+   ylab(NULL) + 
+   scale_fill_continuous(low = 'green', high = 'red') + 
+   coord_fixed( 0.5 * diff(range(dfData$x)) / diff(range(dfData$y)))
+
+#View(dfData)
+```
+
+
+
+
+
+
