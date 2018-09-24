@@ -1,0 +1,59 @@
+---
+title: "Financings quarterly sep 2018"
+output: html_notebook
+---
+
+
+
+
+```{r}
+
+library(lubridate)
+library(tidyverse)
+glimpse(up_down)
+ View(up_down)
+ 
+```
+
+
+
+
+Add quarter. 
+
+```{r}
+
+with_quarter <- up_down %>% mutate(quarter=quarter(x=format_month, with_year=TRUE)) %>% separate(quarter, c("quarter_year", "quarter_number"), remove=FALSE)
+glimpse(with_quarter)
+
+```
+
+
+
+Let's chart again. 
+
+```{r}
+
+library(scales)
+
+ggplot(with_quarter, aes(quarter_number, monthly_total_FinalAmountUSD))+
+  geom_col()+
+  scale_y_continuous(labels = dollar)+
+  facet_grid(rows=vars(quarter_year))
+
+#glimpse(financings_formatted)
+  
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+

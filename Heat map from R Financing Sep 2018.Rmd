@@ -1,0 +1,77 @@
+---
+title: "Heat map from R Financing"
+output: html_notebook
+---
+
+Heatmap from R financing 
+
+```{r}
+glimpse(up_down)
+ View(up_down)
+
+
+```
+
+
+
+
+
+Let's heatmap
+
+```{r}
+
+
+
+library(RColorBrewer)
+
+up_down %>% filter(!year_close_date%in%c(2019, 2009, 2010)) %>% mutate(year_factor=factor(year_close_date)) %>% mutate(rev_year_factor=fct_rev(year_factor)) %>% 
+
+ggplot( aes(month_close_date,rev_year_factor))+
+  geom_tile(aes(fill=roll_mean3month_pct))+
+  #scale_fill_gradient2(limits=c(-1,1))+
+  scale_fill_distiller(palette = "RdYlGn", limits=c(-1,1))+
+  theme_minimal()
+  
+
+```
+
+
+
+
+Let's heatmap on month totals
+
+```{r}
+
+#glimpse(up_down)
+
+
+
+library(RColorBrewer)
+
+up_down %>% filter(!year_close_date%in%c(2019, 2009, 2010)) %>% mutate(year_factor=factor(year_close_date)) %>% mutate(rev_year_factor=fct_rev(year_factor)) %>% 
+
+ggplot( aes(month_close_date,rev_year_factor))+
+  geom_tile(aes(fill=monthly_total_FinalAmountUSD))+
+#   scale_fill_continuous(limits=c(7500000000,0))+
+  scale_fill_distiller(palette = "Greens",trans = "reverse")+
+  theme_minimal()
+  
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,116 @@
+---
+title: "Horizon chart"
+output: html_notebook
+---
+
+Carrying on and modelling various moving averages. 
+
+
+```{r}
+
+library(tidyverse)
+glimpse(month_totals_final)
+
+
+```
+
+
+
+
+Let's select the key columns so this easier to work with. 
+
+```{r}
+
+library(lubridate)
+library(scales)
+
+select_month_finance <- month_totals_final %>% select(month_close_date,month_year_FinalAmountUSD, monthly_total_FinalAmountUSD, year_close_date) %>% filter (!duplicated(month_year_FinalAmountUSD)) %>% mutate(format_month=myd(paste(month_year_FinalAmountUSD, 1, sep="-"))) %>% arrange(format_month) %>% mutate(roll_mean_3month=rollmean(monthly_total_FinalAmountUSD,k=3, fill=NA, align="right")) %>% mutate(roll_mean3month_pct=(monthly_total_FinalAmountUSD/roll_mean_3month)-1) 
+select_month_finance
+
+#?rollmean()
+
+#?lubridate
+
+```
+
+
+
+
+
+
+
+Let's plot. 
+
+```{r}
+
+library(ggTimeSeries)
+library(viridis)
+
+select_month_finance$month_year_FinalAmountUSD <- factor(select_month_finance$month_year_FinalAmountUSD, levels=unique(select_month_finance$month_year_FinalAmountUSD))
+
+select_month_finance
+
+
+ggplot_horizon(select_month_finance, 'month_close_date', 'roll_mean3month_pct', bandwidth=10) +
+  facet_grid(year_close_date ~ .) +
+  scale_fill_continuous(low = 'red', high = 'green')
+
+
+
+```
+
+
+
+
+
+```{r}
+
+glimpse(select_month_finance)
+
+
+ggplot(select_month_finance,aes(month_close_date,roll_mean3month_pct, group=1))+
+  geom_area(aes(ymin=-1,ymax=roll_mean3month_pct ))+
+  facet_grid(year_close_date ~ .) +
+  theme_minimal()
+
+```
+
+
+
+Let's create two pct columns, one up and one down. 
+
+```{r}
+
+up_down <- select_month_finance %>% mutate(pct_up=ifelse(roll_mean3month_pct>0, roll_mean3month_pct, NA)) %>% mutate(pct_down=ifelse(roll_mean3month_pct<0, roll_mean3month_pct, NA)) %>% mutate(pct_down_postitive=(pct_down*-1))
+
+glimpse(up_down)
+View(up_down)
+
+```
+
+
+K. Plot. 
+
+
+```{r}
+
+
+
+ggplot(up_down,aes(x=month_close_date, group=0))+
+  geom_col(aes(y=pct_up ), fill="green")+
+  geom_col(aes(y=pct_down_postitive ), fill="red")+
+  facet_grid(year_close_date ~ .) +
+  theme_minimal()
+
+
+```
+
+
+
+I give up. 
+
+
+
+
+
+

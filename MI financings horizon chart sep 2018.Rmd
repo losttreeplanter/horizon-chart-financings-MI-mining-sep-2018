@@ -60,7 +60,15 @@ ggplot(aes(month_close_date,FinalAmountUSD))+
   scale_y_continuous(labels = dollar)+
   facet_grid(rows=vars(year_close_date))
 
+#View(financings_formatted)
+
 ```
+
+
+
+
+
+
 
 
 Let's add moving averages to financings_formatted. 
@@ -146,6 +154,8 @@ ggplot(aes(month_year_FinalAmountUSD,monthly_total_FinalAmountUSD , group=1))+
 
 
 
+
+Top financing. 
 
 
 
